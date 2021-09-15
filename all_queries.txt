@@ -1,0 +1,35 @@
+Q1.Find all the topics and tasks which are thought in the month of October.
+
+db.topic.find({"$expr":{"$eq":[{"$month":{$toDate:'$date'}},10]}},{_id:0}).pretty();
+db.task.find({"$expr":{"$eq":[{"$month":{$toDate:'$date'}},10]}},{_id:0}).pretty();
+
+***************************************************************************************
+
+Q2.Find all the company drives which appeared between 15 oct-2020 and 31-oct-2020.
+
+db.company_drives.find({"$expr":{"$and":[{'$gt':[{$toDate:'$drive_date'},ISODate("2020-10-15")]},{'$lt':[{$toDate:'$drive_date'},ISODate("2020-10-31")]}]}},{_id:0}).pretty();
+
+***************************************************************************************
+
+Q3.Find all the company drives and students who are appeared for the placement.
+
+db.company_drives.aggregate([{$lookup:{from:"users",localField:"student_id",foreignField:"student_id",as:"student_info"}},{ $project : { _id:0}}]).pretty();
+
+***************************************************************************************
+
+Q4.Find the number of problems solved by the user in codekata.
+
+db.codekata.aggregate([{$group:{_id:"$student_id",no_of_problems_solved:{$sum:"$problems_solved"}}},{$lookup:{from:"users",localField:"_id",foreignField:"student_id",as:"student_info"}}]).pretty();
+
+***************************************************************************************
+
+Q5.Find all the mentors with who has the mentee's count more than 15.
+
+db.users.aggregate([{$group:{_id:"$mentor_id",no_of_mentees:{$sum:1}}},{$lookup:{from:"mentor",localField:"_id",foreignField:"mentor_id",as:"mentor_info"}},{$match:{"no_of_mentees":{'$gt':15}}}]).pretty();
+
+***************************************************************************************
+
+Q6.Find the number of users who are absent and task is not submitted  between 15 oct-2020 and 31-oct-2020.
+
+db.attendance.aggregate([{$match:{"$expr":{"$and":[{'$eq':['$status',"Absent"]},{'$gt':[{$toDate:'$date'},ISODate("2020-10-15")]},{'$lt':[{$toDate:'$date'},ISODate("2020-10-31")]}]}}},{$group:{_id:"$student_id",no_of_days_absent:{$sum:1}}}])
+db.task.find({"$expr":{"$or":[{'$lte':[{$toDate:'$date'},ISODate("2020-10-15")]},{'$gte':[{$toDate:'$date'},ISODate("2020-10-31")]}]}},{_id:0});
